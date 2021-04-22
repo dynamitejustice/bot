@@ -174,7 +174,7 @@ func (bb *BasicBot) HandleChat() error {
 					if nil != cmdMatches {
 						cmd := cmdMatches[1]
 						switch cmd {
-						case "!cmd":
+						case "cmd":
 							bb.Say("Current commands: !room")
 						case "room":
 							bb.Say("Lobby ID: ididid - Passcode: passsss")
