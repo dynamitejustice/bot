@@ -173,7 +173,12 @@ func (bb *BasicBot) HandleChat() error {
 					cmdMatches := CmdRegex.FindStringSubmatch(msg)
 					if nil != cmdMatches {
 						cmd := cmdMatches[1]
-
+						switch cmd {
+						case "!cmd":
+							bb.Say("Current commands: !room")
+						case "room":
+							bb.Say("Lobby ID: ididid - Passcode: passsss")
+						}
 						// channel-owner specific commands
 						if userName == bb.Channel {
 							switch cmd {
@@ -239,7 +244,7 @@ func (bb *BasicBot) Say(msg string) error {
 	if len(msg) > 512 {
 		return errors.New("BasicBot.Say: msg exceeded 512 bytes")
 	}
-	
+
 	_, err := bb.conn.Write([]byte(fmt.Sprintf("PRIVMSG #%s :%s\r\n", bb.Channel, msg)))
 	if nil != err {
 		return err
