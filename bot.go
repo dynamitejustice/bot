@@ -186,6 +186,9 @@ func (bb *BasicBot) HandleChat() error {
 								"[%s] Lobby ID: ididid - Passcode: passsss \n",
 								timeStamp(),
 							)
+						case "uptime":
+							upTime := time.Now().Sub(bb.startTime).Seconds()
+							bb.Say("Live for: [%s]", upTime)
 						}
 						// channel-owner specific commands
 						if userName == bb.Channel {
