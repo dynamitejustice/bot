@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	rgb "github.com/foresthoffman/rgblog"
 )
 
 const PSTFormat = "Jan 2 15:04:05 PST"
@@ -175,8 +176,16 @@ func (bb *BasicBot) HandleChat() error {
 						switch cmd {
 						case "cmd":
 							bb.Say("Current commands: !room")
+							rgb.CPrintf(
+								"[%s] Current commands: !room \n",
+								timeStamp(),
+							)
 						case "room":
 							bb.Say("Lobby ID: ididid - Passcode: passsss")
+							rgb.CPrintf(
+								"[%s] Lobby ID: ididid - Passcode: passsss \n",
+								timeStamp(),
+							)
 						}
 						// channel-owner specific commands
 						if userName == bb.Channel {
