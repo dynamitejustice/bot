@@ -187,8 +187,8 @@ func (bb *BasicBot) HandleChat() error {
 								timeStamp(),
 							)
 						case "uptime":
-							upTime := time.Now().Sub(bb.startTime).Seconds()
-							bb.Say("Live for: [%s]", upTime)
+							upTime := time.Since(bb.startTime).Seconds()
+							rgb.YPrintf("[%s] Live for: %fs\n", timeStamp(), upTime)
 						}
 						// channel-owner specific commands
 						if userName == bb.Channel {
