@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	rgb "github.com/foresthoffman/rgblog"
 )
 
 const PSTFormat = "Jan 2 15:04:05 PST"
