@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/textproto"
 	"regexp"
@@ -98,6 +99,9 @@ type BasicBot struct {
 	// A path to a limited-access directory containing the bot's OAuth credentials.
 	PrivatePath string
 
+	// A path to the external json file listing the commands and messages the bot will respond with.
+	CmdsPath string
+
 	// The domain of the IRC server.
 	Server string
 
@@ -173,23 +177,21 @@ func (bb *BasicBot) HandleChat() error {
 					cmdMatches := CmdRegex.FindStringSubmatch(msg)
 					if nil != cmdMatches {
 						cmd := cmdMatches[1]
-						switch cmd {
-						case "cmd":
-							bb.Say("Current commands: !room")
-							rgb.CPrintf(
-								"[%s] Current commands: !room \n",
-								timeStamp(),
-							)
-						case "room":
-							bb.Say("Lobby ID: ididid - Passcode: passsss")
-							rgb.CPrintf(
-								"[%s] Lobby ID: ididid - Passcode: passsss \n",
-								timeStamp(),
-							)
-						case "uptime":
-							upTime := time.Since(bb.startTime).Seconds()
-							rgb.YPrintf("[%s] Live for: %fs\n", timeStamp(), upTime)
-						}
+						cmdlist := bb.ReadCommands()
+						fmt.Println(cmdlist)
+
+						// for k, v := range cmdlist {
+						// 	switch cmd {
+						// 	case k:
+						// 		fmt.Println(v)
+						// 	case "cmd":
+						// 		bb.Say("Current commands: !room")
+						// 		rgb.CPrintf(
+						// 			"[%s] Current commands: !room \n",
+						// 			timeStamp(),
+						// 		)
+						// 	}
+						// }
 						// channel-owner specific commands
 						if userName == bb.Channel {
 							switch cmd {
@@ -241,6 +243,23 @@ func (bb *BasicBot) ReadCredentials() error {
 	if err = dec.Decode(bb.Credentials); nil != err && io.EOF != err {
 		return err
 	}
+
+	return nil
+}
+
+// Reads from the commands json for creating the commands cases.
+func (bb *BasicBot) ReadCommands() []map[string]interface{} {
+
+	// reads from the file
+	cmdfile, err := ioutil.ReadFile(bb.CmdsPath)
+	if err != nil {
+		log.Fatal("Error when opening file: ", err)
+	}
+
+	var cmds map[string]interface{}
+
+	// parses the file contents
+	json.Unmarshal([]byte(cmdfile), &cmds)
 
 	return nil
 }
