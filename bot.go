@@ -178,7 +178,9 @@ func (bb *BasicBot) HandleChat() error {
 					if nil != cmdMatches {
 						cmd := cmdMatches[1]
 						cmdlist := bb.ReadCommands()
-						fmt.Println(cmdlist)
+						for k, v := range cmdlist {
+							fmt.Println(k, v)
+						}
 
 						// for k, v := range cmdlist {
 						// 	switch cmd {
