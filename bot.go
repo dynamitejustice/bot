@@ -181,15 +181,26 @@ func (bb *BasicBot) HandleChat() error {
 					if nil != cmdMatches {
 						cmd := cmdMatches[1]
 						cmdlist := bb.ReadCommands()
-						fmt.Println(cmdlist)
+						keys := make([]string, len(cmdlist))
+
+						i := 0
+						for k := range cmdlist {
+							keys[i] = k
+							i++
+						}
 
 						for k, v := range cmdlist {
 							switch cmd {
 							case k:
+								value := fmt.Sprintf("%v", v)
+								bb.Say(value)
 								fmt.Println(v)
-							case "cmd":
-								bb.Say("Current commands: !" + k + " ")
 							}
+						}
+
+						switch cmd {
+						case "cmd":
+							bb.Say("Current commands: !" + strings.Join(keys, ", !"))
 						}
 						//channel-owner specific commands
 						if userName == bb.Channel {
