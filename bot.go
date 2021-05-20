@@ -14,9 +14,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/textproto"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -82,6 +82,9 @@ type BasicBot struct {
 
 	// The credentials necessary for authentication.
 	Credentials *OAuthCred
+
+	// Decoded Commands from json
+	Commands map[string]interface{}
 
 	// A forced delay between bot responses. This prevents the bot from breaking the message limit
 	// rules. A 20/30 millisecond delay is enough for a non-modded bot. If you decrease the delay
@@ -178,23 +181,17 @@ func (bb *BasicBot) HandleChat() error {
 					if nil != cmdMatches {
 						cmd := cmdMatches[1]
 						cmdlist := bb.ReadCommands()
-						for k, v := range cmdlist {
-							fmt.Println(k, v)
-						}
+						fmt.Println(cmdlist)
 
-						// for k, v := range cmdlist {
-						// 	switch cmd {
-						// 	case k:
-						// 		fmt.Println(v)
-						// 	case "cmd":
-						// 		bb.Say("Current commands: !room")
-						// 		rgb.CPrintf(
-						// 			"[%s] Current commands: !room \n",
-						// 			timeStamp(),
-						// 		)
-						// 	}
-						// }
-						// channel-owner specific commands
+						for k, v := range cmdlist {
+							switch cmd {
+							case k:
+								fmt.Println(v)
+							case "cmd":
+								bb.Say("Current commands: !" + k + " ")
+							}
+						}
+						//channel-owner specific commands
 						if userName == bb.Channel {
 							switch cmd {
 							case "tbdown":
@@ -250,20 +247,25 @@ func (bb *BasicBot) ReadCredentials() error {
 }
 
 // Reads from the commands json for creating the commands cases.
-func (bb *BasicBot) ReadCommands() []map[string]interface{} {
+func (bb *BasicBot) ReadCommands() map[string]interface{} {
 
-	// reads from the file
-	cmdfile, err := ioutil.ReadFile(bb.CmdsPath)
+	// Open our jsonFile
+	jsonFile, err := os.Open(bb.CmdsPath)
+	// if we os.Open returns an error then handle it
 	if err != nil {
-		log.Fatal("Error when opening file: ", err)
+		fmt.Println(err)
 	}
 
-	var cmds map[string]interface{}
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
 
-	// parses the file contents
-	json.Unmarshal([]byte(cmdfile), &cmds)
+	byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	return nil
+	var result map[string]interface{}
+	json.Unmarshal([]byte(byteValue), &result)
+
+	return result
+
 }
 
 // Makes the bot send a message to the chat channel.
