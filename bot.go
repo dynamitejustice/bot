@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/textproto"
 	"os"
@@ -132,7 +131,7 @@ func (bb *BasicBot) Connect() {
 // Officially disconnects the bot from the Twitch IRC server.
 func (bb *BasicBot) Disconnect() {
 	bb.conn.Close()
-	upTime := time.Now().Sub(bb.startTime).Seconds()
+	upTime := time.Since(bb.startTime).Seconds()
 	rgb.YPrintf("[%s] Closed connection from %s! | Live for: %fs\n", timeStamp(), bb.Server, upTime)
 }
 
@@ -152,13 +151,13 @@ func (bb *BasicBot) HandleChat() error {
 			// officially disconnects the bot from the server
 			bb.Disconnect()
 
-			return errors.New("bb.Bot.HandleChat: Failed to read line from channel. Disconnected.")
+			return errors.New("bb.Bot.HandleChat: Failed to read line from channel. Disconnected")
 		}
 
 		// logs the response from the IRC server
 		rgb.YPrintf("[%s] %s\n", timeStamp(), line)
 
-		if "PING :tmi.twitch.tv" == line {
+		if line == "PING :tmi.twitch.tv" {
 
 			// respond to PING message with a PONG message, to maintain the connection
 			bb.conn.Write([]byte("PONG :tmi.twitch.tv\r\n"))
@@ -241,7 +240,7 @@ func (bb *BasicBot) JoinChannel() {
 func (bb *BasicBot) ReadCredentials() error {
 
 	// reads from the file
-	credFile, err := ioutil.ReadFile(bb.PrivatePath)
+	credFile, err := os.ReadFile(bb.PrivatePath)
 	if nil != err {
 		return err
 	}
@@ -270,7 +269,7 @@ func (bb *BasicBot) ReadCommands() map[string]interface{} {
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ := io.ReadAll(jsonFile)
 
 	var result map[string]interface{}
 	json.Unmarshal([]byte(byteValue), &result)
@@ -281,8 +280,8 @@ func (bb *BasicBot) ReadCommands() map[string]interface{} {
 
 // Makes the bot send a message to the chat channel.
 func (bb *BasicBot) Say(msg string) error {
-	if "" == msg {
-		return errors.New("BasicBot.Say: msg was empty.")
+	if msg == "" {
+		return errors.New("BasicBot.Say: msg was empty")
 	}
 
 	// check if message is too large for IRC
