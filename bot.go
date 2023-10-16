@@ -18,6 +18,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	rgb "github.com/foresthoffman/rgblog"
@@ -109,6 +110,12 @@ type BasicBot struct {
 
 	// The time at which the bot achieved a connection to the server.
 	startTime time.Time
+
+	// When the last time the BasicBot responded to a command
+	lastCall time.Time
+
+	// Preventing lastCall from being updating from multiple calls at once
+	mu sync.Mutex
 }
 
 // Connects the bot to the Twitch IRC server. The bot will continue to try to connect until it
@@ -261,6 +268,7 @@ func (bb *BasicBot) ReadCommands() map[string]interface{} {
 
 	// Open our jsonFile
 	jsonFile, err := os.Open(bb.CmdsPath)
+
 	// if we os.Open returns an error then handle it
 	if err != nil {
 		fmt.Println(err)
@@ -280,6 +288,10 @@ func (bb *BasicBot) ReadCommands() map[string]interface{} {
 
 // Makes the bot send a message to the chat channel.
 func (bb *BasicBot) Say(msg string) error {
+	// Locking to ensure the lastCall is accurate and not overwritten by multiple goroutines at once
+	bb.mu.Lock()
+	defer bb.mu.Unlock()
+
 	if msg == "" {
 		return errors.New("BasicBot.Say: msg was empty")
 	}
@@ -289,10 +301,19 @@ func (bb *BasicBot) Say(msg string) error {
 		return errors.New("BasicBot.Say: msg exceeded 512 bytes")
 	}
 
+	// Checking if enough time has elapsed since the last time bb.Say was called
+	if time.Since(bb.lastCall) < 5*time.Second {
+		return errors.New("BasicBot.Say: usage on cooldown")
+	}
+	
 	_, err := bb.conn.Write([]byte(fmt.Sprintf("PRIVMSG #%s :%s\r\n", bb.Channel, msg)))
 	if nil != err {
 		return err
 	}
+	
+	// Updating the last time it successfully was called to the current time
+	bb.lastCall = time.Now()
+	
 	return nil
 }
 
